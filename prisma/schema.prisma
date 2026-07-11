@@ -1,0 +1,111 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum CampaignStatus {
+  Draft
+  Running
+  Paused
+  Completed
+  Cancelled
+}
+
+enum EmailStatus {
+  Draft
+  Pending
+  Sent
+  Failed
+  Opened
+  Replied
+}
+
+model Campaign {
+  id              String             @id @default(uuid())
+  campaignName    String
+  description     String?
+  status          CampaignStatus     @default(Draft)
+  startDate       DateTime?
+  endDate         DateTime?
+  emailsSent      Int                @default(0)
+  emailsFailed    Int                @default(0)
+  opened          Int                @default(0)
+  clicked         Int                @default(0)
+  replied         Int                @default(0)
+  createdBy       String
+  createdAt       DateTime           @default(now())
+  aiTone          String             @default("Professional")
+  subjectTemplate String
+  bodyTemplate    String
+  recipients      CampaignRecipient[]
+  emailHistories  EmailHistory[]
+  drafts          Draft[]
+}
+
+model CampaignRecipient {
+  id             String         @id @default(uuid())
+  campaignId     String
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  companyId      String
+  status         String         @default("Pending") // Pending, Sent, Failed
+  gmailMessageId String?
+  gmailThreadId  String?
+  sentAt         DateTime?
+  error          String?
+  createdAt      DateTime       @default(now())
+}
+
+model EmailHistory {
+  id             String      @id @default(uuid())
+  gmailMessageId String?     @unique
+  gmailThreadId  String?
+  sentTime       DateTime?
+  status         EmailStatus @default(Sent)
+  campaignId     String?
+  campaign       Campaign?   @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  companyId      String
+  userId         String
+  subject        String
+  body           String
+  error          String?
+  createdAt      DateTime    @default(now())
+}
+
+model EmailTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  subjectTemplate String
+  bodyTemplate    String
+  tone            String
+  createdBy       String
+  createdAt       DateTime @default(now())
+}
+
+model GmailToken {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  email        String
+  accessToken  String
+  refreshToken String?
+  expiryDate   DateTime?
+  scope        String[]
+  connected    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Draft {
+  id           String   @id @default(uuid())
+  gmailDraftId String   @unique
+  companyId    String
+  campaignId   String?
+  campaign     Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  subject      String
+  body         String
+  status       String   @default("Draft")
+  createdAt    DateTime @default(now())
+}

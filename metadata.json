@@ -1,0 +1,6 @@
+{
+  "name": "AI Recruitment CRM",
+  "description": "AI-powered Recruitment CRM platform with Gmail automation, company intelligence, and market analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
